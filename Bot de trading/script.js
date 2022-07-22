@@ -8,7 +8,6 @@ const binance = new Binance().options({
     useServerTime: true,
     recvWindow: 60000,
   });
-  
   //=============VARIABLES=============//
   let candlesHighScan = [];
   let candlesLowScan = [];
@@ -30,16 +29,13 @@ const binance = new Binance().options({
   let type = "STOP_LOSS";
   let price = 31000;
   let stopPrice = 31000;
-
 //=============FONCTIONS=============//
-
 function precise(x, y = 2) {
   return Number.parseFloat(x).toFixed(y);
 }
 function preciseBTC(x, y = 3) {
   return Number.parseFloat(x).toFixed(y);
 }
-
 //=============FONCTION ASYNCHRONE BINANCE=============//   
 (async function () {
   let futuresAccount = await binance.futuresAccount();
@@ -79,7 +75,6 @@ function preciseBTC(x, y = 3) {
       await new Promise((r) => setTimeout(r, 2000));
       await binance.prices("BTCUSDT", (error, ticker) => {
         BTCPrice = ticker.BTCUSDT;
-        
         //=============CALCULS=============//
         riskPourcentage = precise((5 * solde) / 100);
         higher = Math.max(...candlesHighScan);
@@ -94,10 +89,7 @@ function preciseBTC(x, y = 3) {
         numbersizePosition = parseFloat(fixedsizePosition);
         numberrlzLong = parseFloat(fixedrlzLong);
         takeProfit = riskPourcentage * 3; // nombre = ratio
-        
-        
         //=============CONSOLE.LOG=============//
-        
         console.clear()
         console.log(chalk.cyanBright("============Infos BTC==========="));
         if(BTCPrice <= numberrlzLong){console.log(chalk.cyan("BTC PRICE : " + chalk.yellow(precise(BTCPrice) + " $")));}
@@ -119,46 +111,27 @@ function preciseBTC(x, y = 3) {
         else if (BTCUSDTPNL<1){ console.log(chalk.cyan("PNL : ") +'\x1b[31m%s\x1b[0m', precise(BTCUSDTPNL));}
         console.log(chalk.cyan("Si trade gagnant : ") +chalk.green( takeProfit.toFixed(2) + " $"));
         console.log(chalk.cyan("Si trade perdant : ") + chalk.red(riskPourcentage + " $"));
-        
-        
       }
     });
-    
-    await new Promise((r) => setTimeout(r, 2000));
-    
-    //=============CONDITIONS DE TRADE=============//
-    
-    
+    await new Promise((r) => setTimeout(r, 2000));    
     //========AJUSTEMENT DU LEVIER=======
     await binance.futuresLeverage( 'BTCUSDT', 50 );
-    
-    
     if (BTCUSDTSizeOpen == 0.000 && BTCPrice <=  rlzLong618 && BTCPrice >= rlzLong886) {
       //========OUVRIR LONG=======
       await binance.futuresMarketBuy("BTCUSDT", numbersizePosition);
       await new Promise((r) => setTimeout(r, 1000));
       console.log("Setup LONG Trouvé = ordre ouvert au market !");
-      
     }
     //========SL=======
-    
-    
-    
     if (BTCUSDTSizeOpen != 0.000 && BTCUSDTPNL <= -riskPourcentage) { 
       await binance.futuresMarketSell("BTCUSDT", BTCUSDTSizeOpen);
       await new Promise((r) => setTimeout(r, 1000));
       console.log("Stop Loss touché !");
     } 
-    
     // ========TP=======
     if(BTCUSDTSizeOpen != 0 && BTCUSDTPNL >= takeProfit){
       await binance.futuresMarketSell("BTCUSDT", BTCUSDTSizeOpen);
       await new Promise((r) => setTimeout(r, 1000));
       console.log("Take Profit touché !");
-      
     }
-    
-    
-    //}
   })();
-  
